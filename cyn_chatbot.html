@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b0e12">
+  <title>Cyn — Absolute Solver Chat</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230b0e12'/><text x='50' y='58' font-size='60' text-anchor='middle' fill='%23b7f14d'>∞</text></svg>">
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    body { font-family: sans-serif; background: #0b0e12; color: white; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cyn — Absolute Solver Chat</h1>
+    <button id="installBtn">Install</button>
+    <button id="fsBtn">Fullscreen</button>
+  </header>
+  <main>
+    <!-- Chat UI from your original code here -->
+  </main>
+  <script>
+    const manifest = {
+      name: 'Cyn — Absolute Solver Chat',
+      short_name: 'Cyn Chat',
+      start_url: '.',
+      display: 'standalone',
+      background_color: '#0b0e12',
+      theme_color: '#0b0e12',
+      icons: [
+        { src: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%230b0e12%22/><text x=%2250%22 y=%2258%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22%23b7f14d%22>∞</text></svg>', sizes: '192x192', type: 'image/svg+xml' },
+        { src: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%230b0e12%22/><text x=%2250%22 y=%2258%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22%23b7f14d%22>∞</text></svg>', sizes: '512x512', type: 'image/svg+xml' }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    document.querySelector('link[rel="manifest"]').setAttribute('href', manifestURL);
+
+    document.getElementById('fsBtn').addEventListener('click', async () => {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        fsBtn.textContent = 'Exit Fullscreen';
+      } else {
+        await document.exitFullscreen();
+        fsBtn.textContent = 'Fullscreen';
+      }
+    });
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBtn').style.display = 'inline-block';
+    });
+    document.getElementById('installBtn').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      } else {
+        alert('To install: serve this HTML via HTTPS and open in Chrome.');
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register(URL.createObjectURL(new Blob([
+        `self.addEventListener('install', e => {
+           e.waitUntil(caches.open('cyn-cache').then(c => c.addAll(['./'])));
+           self.skipWaiting();
+         });
+         self.addEventListener('fetch', e => {
+           e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+         });`
+      ], {type: 'text/javascript'})));
+    }
+  </script>
+</body>
+</html>
